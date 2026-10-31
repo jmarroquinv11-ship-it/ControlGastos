@@ -32,6 +32,10 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
+        findViewById<Button>(R.id.btnRegistrarIngreso).setOnClickListener {
+            startActivity(Intent(this, FormularioIngresoActivity::class.java))
+        }
+
         ViewCompat.setOnApplyWindowInsetsListener(
             findViewById(R.id.main)
         ) { vista, insets ->
@@ -58,10 +62,13 @@ class MainActivity : AppCompatActivity() {
             val gastos = control.listar()
             val listaGastos = findViewById<android.widget.ListView>(R.id.listaGastos)
 
-            val textosGastos = gastos.map { gasto ->
-                "${gasto.descripcion} - Q ${"%.2f".format(java.util.Locale.US, gasto.monto)}\n" +
-                        "${gasto.categoria} | ${gasto.fecha}"
-            }
+            val ingresos = IngresoRepositoryPersistente(this@MainActivity).listar()
+            val movimientos = (gastos.map { gasto ->
+                Triple(gasto.fecha, "GASTO: ${gasto.descripcion}  -Q ${"%.2f".format(Locale.US, gasto.monto)}\n${gasto.categoria} | ${gasto.fecha}", Pair(false, gasto.id))
+            } + ingresos.map { ingreso ->
+                Triple(ingreso.fecha, "INGRESO: ${ingreso.concepto}  +Q ${"%.2f".format(Locale.US, ingreso.monto)}\n${ingreso.tipo} | ${ingreso.fecha}", Pair(true, ingreso.id))
+            }).sortedByDescending { it.first }
+            val textosGastos = movimientos.map { it.second }
 
             val adaptador = android.widget.ArrayAdapter(
                 this@MainActivity,
@@ -72,7 +79,21 @@ class MainActivity : AppCompatActivity() {
             listaGastos.adapter = adaptador
             listaGastos.setOnItemClickListener { _, _, posicion, _ ->
 
-                val gastoSeleccionado = gastos[posicion]
+                val seleccion = movimientos[posicion].third
+                if (seleccion.first) {
+                    android.app.AlertDialog.Builder(this@MainActivity)
+                        .setTitle("Eliminar ingreso")
+                        .setMessage("¿Deseas eliminar este ingreso?")
+                        .setPositiveButton("Eliminar") { _, _ ->
+                            IngresoRepositoryPersistente(this@MainActivity).eliminar(seleccion.second)
+                            actualizarResumen()
+                        }
+                        .setNegativeButton("Cancelar", null)
+                        .show()
+                    return@setOnItemClickListener
+                }
+                val gastoSeleccionado = gastos.firstOrNull { it.id == seleccion.second }
+                    ?: return@setOnItemClickListener
 
                 val opciones = arrayOf("Editar", "Eliminar", "Cancelar")
 
@@ -129,6 +150,7 @@ class MainActivity : AppCompatActivity() {
             val anioActual = hoy.substring(0, 4)
 
             val total = gastos.sumOf { it.monto }
+            val totalIngresos = ingresos.sumOf { it.monto }
 
             val totalHoy = gastos
                 .filter { it.fecha == hoy }
@@ -147,7 +169,7 @@ class MainActivity : AppCompatActivity() {
                 .sumOf { it.monto }
 
             findViewById<TextView>(R.id.txtBalance).text =
-                "Q %.2f".format(Locale.US, if (total == 0.0) 0.0 else -total)
+                "Q %.2f".format(Locale.US, totalIngresos - total)
 
             findViewById<TextView>(R.id.txtGastosHoy).text =
                 "Hoy: Q %.2f".format(Locale.US, totalHoy)

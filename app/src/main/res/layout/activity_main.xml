@@ -223,6 +223,18 @@
             </com.google.android.material.card.MaterialCardView>
 
             <Button
+                android:id="@+id/btnRegistrarIngreso"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_marginTop="18dp"
+                android:backgroundTint="#167C94"
+                android:text="+  Registrar ingreso"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <Button
                 android:id="@+id/btnRegistrarGasto"
                 android:layout_width="match_parent"
                 android:layout_height="58dp"
@@ -258,7 +270,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="5dp"
-                        android:text="Tu historial de gastos"
+                        android:text="Tus ingresos y gastos registrados"
                         android:textColor="#7E9188"
                         android:textSize="12sp" />
                     <ListView
