@@ -33,10 +33,15 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    sourceSets {
+        getByName("main") {
+            kotlin.srcDir("../librerias/clase12-gastos-core/src/main/kotlin")
+        }
+    }
 }
 
 dependencies {
-    implementation("umg.edu.gt.progra2:gastos-core:1.1.0")
+
     implementation("androidx.room:room-runtime:2.8.5")
     implementation("androidx.room:room-ktx:2.8.5")
     ksp("androidx.room:room-compiler:2.8.5")
